@@ -19,7 +19,7 @@ type Item = {
   name: string;
   label: string;
   tagName: "textarea";
-  placeholder?: string;
+  placeholder: string;
 }
 
 const items: Item[] = [
