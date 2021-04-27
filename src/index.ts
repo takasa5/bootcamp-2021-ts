@@ -1,12 +1,26 @@
 type Item = {
   name: string;
-  tagName: string;
-  type?: string;
   label: string;
+  tagName: "input";
+  type: "text" | "email" | "tel";
+  placeholder: string;
+} | {
+  name: string;
+  label: string;
+  tagName: "input";
+  type: "radio" | "checkbox";
+  values: { label: string; value: number }[];
+} | {
+  name: string;
+  label: string;
+  tagName: "select";
+  options: { text: string; value: number }[];
+} | {
+  name: string;
+  label: string;
+  tagName: "textarea";
   placeholder?: string;
-  values?: { label: string; value: number }[];
-  options?: { text: string; value: number }[];
-};
+}
 
 const items: Item[] = [
   {
@@ -80,27 +94,58 @@ const items: Item[] = [
 // _____________________________________________________________________________
 //
 
-function createInputRow(item: Item) {
-  switch (item.type) {
-    case "radio":
-    case "checkbox":
+function createRow(item: Item) {
+  switch(item.tagName) {
+    case "input":
+      switch (item.type) {
+        case "radio":
+        case "checkbox":
+          let tempString = "";
+          item.values?.forEach((i) => {
+            const id = String(item.name) + String(i.value);
+            tempString += `<input name="${item.name}" id="${id}" type="${item.type}" value="${i.value}"/>
+            <label for="${id}">${i.label}</label>
+            `
+          });
+          return  `
+            <tr>
+              <th>
+                ${item.label}
+              </th>
+              <td>
+                ${tempString}
+              </td>
+            </tr>
+          `
+        default:
+          return `
+            <tr>
+              <th>
+                ${item.label}
+              </th>
+              <td>
+                <input name="${item.name}" placeholder="${item.placeholder}" type="${item.type}" />
+              </td>
+            </tr>
+          `;
+      }
+    case "select":
       let tempString = "";
-      item.values?.forEach((i) => {
-        const id = String(item.name) + String(i.value);
-        tempString += `<input name="${item.name}" id="${id}" type="${item.type}" value="${i.value}"/>
-        <label for="${id}">${i.label}</label>
-        `
-      });
-      return  `
+      item.options.forEach((option) => {
+        tempString += `<option value="${option.value}">${option.text}</option>`
+      })
+      return `
         <tr>
           <th>
-            ${item.label}
+          ${item.label}
           </th>
           <td>
-            ${tempString}
+            <select name="${item.name}">
+              ${tempString}
+            </select>
           </td>
         </tr>
-      `
+      `;
     default:
       return `
         <tr>
@@ -108,57 +153,16 @@ function createInputRow(item: Item) {
             ${item.label}
           </th>
           <td>
-            <input name="${item.name}" placeholder="${item.placeholder}" type="${item.type}" />
+            <textarea placeholder="${item.placeholder}"></textarea>
           </td>
         </tr>
       `;
   }
 }
 
-function createSelectRow(item: Item) {
-  let tempString = "";
-  item.options?.forEach((option) => {
-    tempString += `<option value="${option.value}">${option.text}</option>`
-  })
-  return `
-    <tr>
-      <th>
-      ${item.label}
-      </th>
-      <td>
-        <select name="${item.name}">
-          ${tempString}
-        </select>
-      </td>
-    </tr>
-  `;
-}
-
-function createTextAreaRow(item: Item) {
-  return `
-    <tr>
-      <th>
-        ${item.label}
-      </th>
-      <td>
-        <textarea placeholder="${item.placeholder}"></textarea>
-      </td>
-    </tr>
-  `;
-}
-
 function createTable() {
   const list = items
-    .map((item) => {
-      switch (item.tagName) {
-        case "input":
-          return createInputRow(item);
-        case "select":
-          return createSelectRow(item);
-        case "textarea":
-          return createTextAreaRow(item);
-      }
-    })
+    .map((item) => createRow(item))
     .join("");
   return `<table>${list}</table>`;
 }
